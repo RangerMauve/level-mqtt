@@ -96,3 +96,14 @@ Since `#` is only allowed at the end, the following would be an illegal topic: `
 You can use both `+` and `#` in a path. (e.g `foo/+/bar/#` to read all directories under `foo`, find the ones with a subdirectory `bar`, and get all children of those directories)
 
 A neat trick is that if you just use the path `#`, you can retrieve all values in a store
+
+## Traversal operations (Interal)
+
+### childNames(path) -> [child names]
+Lists all of the direct child directories at the given path
+
+### matchingChildren(path, pattern) -> [child names]
+Lists all children (and sub-children) of the path that match the given pattern.
+
+### allChildren(path) -> [child paths]
+List all children and sub-children under a given path. (the `#` wildcard)
