@@ -4,11 +4,11 @@ The goal is to make it easy to store and query trees of data using MQTT topic pa
 
 ## Definitions
 
-> `FIRST` is a placeholder for a low valued ASCII character to be used for delimiting
-> `LAST` is a placeholder for a high valued ASCII character to be used for delimiting
-> `HASH` is a placeholder for the hash of a directory
-> `NAME` is a placeholder for a directory's name, excluding the rest of the path (name of `/foo/bar/` is `bar`)
-> `NOW` is a placeholder for the current wall-clock time that an operation is occurring at.
+* `FIRST` is a placeholder for a low valued ASCII character to be used for delimiting
+* `LAST` is a placeholder for a high valued ASCII character to be used for delimiting
+* `HASH` is a placeholder for the hash of a directory
+* `NAME` is a placeholder for a directory's name, excluding the rest of the path (name of `/foo/bar/` is `bar`)
+* `NOW` is a placeholder for the current wall-clock time that an operation is occurring at.
 
 ## Layout of keys
 The paths `/foo/bar`, `foo/bar/`, `foo/bar`, and `/foo/bar/` are all equivalent to the directory `foo/bar`. Paths cannot contain wildcard characters (`+` and `#`)

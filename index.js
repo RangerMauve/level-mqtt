@@ -2,71 +2,50 @@
 var rightPad = require("right-pad");
 
 var ALLOWED_CHARS = /^[\u0020-\u007E]$/;
-var WILDCARDS = /\+|\$/;
-var LOWEST = "\u001B";
-var HIGHEST = "\u007F";
-var DIRECTORY_STORAGE = "\u001A";
-var DEFAULT_SIZE = 32;
+var WILDCARDS = /\+|\#/;
+var FIRST = "\u001B";
+var LAST = "\u007F";
 
-function MQTTLevelStore(db, options) {
+function MQTTLevelStore(db) {
 	this._db = db;
-	var realOptions = options || {
-		sectionSize: DEFAULT_SIZE
-	};
-	var sectionSize = realOptions.sectionSize;
-	this._sectionSize = sectionSize;
 }
 
 MQTTLevelStore.prototype = {
 	_db: null,
-	_sectionSize: DEFAULT_SIZE,
 
 	get: get,
 	put: put,
 };
 
 function get(path, cb) {
-	var key = pathToKey(this._sectionSize, path);
-	this._get(key, cb);
+	var segments = makeSegments(path, true);
 }
 
 function put(path, value, cb) {
-	var key = pathToKey(this._sectionSize, path);
-	this._put(key, value, cb);
+	var segments = makeSegments(path, true);
+
 }
 
-function pathToKey(sectionSize, path) {
-	if (!path || (typeof path !== "string"))
-		throw new TypeError("Path must be a non-empty string");
+function makeSegments(path, strict) {
+	var segments = null;
+	if (Array.isArray(path))
+		segments = path;
+	else if (typeof path !== "string")
+		throw new TypeError("Path must either be an Array or a String");
+	else segments = path.split("/");
 
-	if (!path.match(ALLOWED_CHARS))
-		throw new TypeError("Path contains invalid characters. Please use visible ASCII characters");
+	validatePath(segments, strict);
 
-	if (path.match(WILDCARDS))
-		throw new TypeError("Path contains wildcards. You can only use + and # for querying and not for keys");
+	return segments;
+}
 
-	var sections = path.split("/");
-
-	var numSections = sections.length;
-
-	if (numSections > 256)
-		throw new TypeError("Path must not be more than 255 sections deep");
-
-	var padded = sections.map(function(section) {
-		if (section.length > sectionSize)
-			throw new TypeError("Path contains segment <" + section + "> that is larger than the maximum segment size: " + sectionSize);
-		return rightPad(section, sectionSize, LOWEST);
+function validatePath(path, strict) {
+	path.forEach(function (segment) {
+		if (typeof segment !== "string")
+			throw new TypeError(segment + " Is not a string.\nPlease supply only strings if you pass an array for the path");
+		if (!segment.match(ALLOWED_CHARS))
+			throw new TypeError(segment + " Contains illegal characters.\nPlease only use visible ASCII characters");
+		if (strict && segment.match(WILDCARDS))
+			throw new TypeError(segment + " Contains a woldcard.\nPlease only use wildcards for query patterns");
 	});
-
-
-	var parsedSections = padded.join("");
-
-	var sizeString = sizeToKey(numSections);
-
-	return sizeString + parsedSections;
-}
-
-function sizeToKey(size) {
-	var sizePrefix = (size < 16) ? "0" : "";
-	return sizePrefix + (size - 1).toString(16);
 }
