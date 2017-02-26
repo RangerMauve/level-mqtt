@@ -1,72 +1,71 @@
 "use strict";
-var map = require("through2-map");
-
-var ALLOWED_CHARS = /^[\u0020-\u007E]$/;
-var WILDCARDS = /\+|\#/;
-var FIRST = "\u001B";
-var LAST = "\u007F";
-var HASH_LENGTH;
+var par = require("par");
+var streamToArray = require("stream-to-array");
 
 function MQTTLevelStore(db) {
 	this._db = db;
 }
+
+var Operations = require("./operations");
+var Helpers = require("./helpers");
 
 MQTTLevelStore.prototype = {
 	_db: null,
 
 	get: get,
 	put: put,
+
+	exists: exists,
+	children: children,
+
+	search: search,
 };
 
 function get(path, cb) {
-	var segments = makeSegments(path, true);
+	var segments = Helpers.makeSegments(path, true);
+	var pathHash = Helpers.hashPath(segments);
+	var db = this._db;
+
+	Operations.getValue(db, pathHash, cb);
 }
 
 function put(path, value, cb) {
-	var segments = makeSegments(path, true);
+	var segments = Helpers.makeSegments(path, true);
+	var pathHash = Helpers.hashPath(segments);
+	var db = this._db;
+	var time = new Date();
 
+	Operations.setValue(db, pathHash, value, par(updateTime, segments));
+
+	function updateTime(pathSegments, err) {
+		if(err) return cb(err);
+		if(!pathSegments.length) return cb(null, time);
+
+		var currentHash = Helpers.hashPath(pathSegments);
+
+		var parentSegments = segments.slice(0, segments.length - 1);
+		var next = par(updateTime, parentSegments);
+		Operations.updateTime(db, currentHash, time, next);
+	}
 }
 
-function makeSegments(path, strict) {
-	var segments = null;
-	if (Array.isArray(path))
-		segments = path;
-	else if (typeof path !== "string")
-		throw new TypeError("Path must either be an Array or a String");
-	else segments = path.split("/");
+function exists(path, cb) {
+	var segments = Helpers.makeSegments(path, true);
+	var pathHash = Helpers.hashPath(segments);
+	var db = this._db;
 
-	validatePath(segments, strict);
-
-	return segments;
+	Operations.existsPath(db, pathHash, cb);
 }
 
-function validatePath(path, strict) {
-	path.forEach(function (segment) {
-		if (typeof segment !== "string")
-			throw new TypeError(segment + " Is not a string.\nPlease supply only strings if you pass an array for the path");
-		if (!segment.match(ALLOWED_CHARS))
-			throw new TypeError(segment + " Contains illegal characters.\nPlease only use visible ASCII characters");
-		if (strict && segment.match(WILDCARDS))
-			throw new TypeError(segment + " Contains a woldcard.\nPlease only use wildcards for query patterns");
-	});
+function children(path, cb) {
+	var segments = Helpers.makeSegments(path, true);
+	var pathHash = Helpers.hashPath(segments);
+	var db = this._db;
+
+	var nameStream = Operations.childNames(db, pathHash);
+	streamToArray(nameStream, cb);
 }
 
-function childNames(db, pathHash) {
-	var start = pathHash + LAST + FIRST;
-	var end = pathHash + LAST + LAST;
-
-	return db.createReadStream({
-		gt: start,
-		lt: end,
-		keys: true,
-		values: false
-	}).pipe(map(parseChildName));
-}
-
-function parseChildName(key) {
-	return key.slice(HASH_LENGTH + 2);
-}
-
-function hashPath(path) {
-
+function search(pattern) {
+	// TODO: Traverse pattern and create a stream of events
 }

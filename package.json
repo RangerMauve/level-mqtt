@@ -1,5 +1,5 @@
 {
-  "name": "mqtt-level-store",
+  "name": "level-mqtt",
   "version": "1.0.0",
   "description": "Store key-value pairs in LevelDB, query with MQTT",
   "main": "index.js",
@@ -8,7 +8,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/RangerMauve/mqtt-level-store.git"
+    "url": "git+https://github.com/RangerMauve/level-mqtt.git"
   },
   "keywords": [
     "mqtt",
@@ -21,10 +21,16 @@
   "author": "rangermauve",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/RangerMauve/mqtt-level-store/issues"
+    "url": "https://github.com/RangerMauve/level-mqtt/issues"
   },
-  "homepage": "https://github.com/RangerMauve/mqtt-level-store#readme",
+  "homepage": "https://github.com/RangerMauve/level-mqtt#readme",
   "dependencies": {
-    "right-pad": "^1.0.1"
+    "eslint": "^3.16.1",
+    "eslint-plugin-node": "^4.1.0",
+    "fnv-lite": "^1.2.0",
+    "par": "^0.3.0",
+    "right-pad": "^1.0.1",
+    "stream-to-array": "^2.3.0",
+    "through2-map": "^3.0.0"
   }
 }
