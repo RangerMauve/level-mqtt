@@ -25,6 +25,7 @@
   },
   "homepage": "https://github.com/RangerMauve/level-mqtt#readme",
   "dependencies": {
+    "async-each": "^1.0.1",
     "eslint": "^3.16.1",
     "eslint-plugin-node": "^4.1.0",
     "fnv-lite": "^1.2.0",

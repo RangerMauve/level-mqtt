@@ -8,6 +8,7 @@ function MQTTLevelStore(db) {
 
 var Operations = require("./operations");
 var Helpers = require("./helpers");
+var Search = require("./search");
 
 MQTTLevelStore.prototype = {
 	_db: null,
@@ -66,6 +67,9 @@ function children(path, cb) {
 	streamToArray(nameStream, cb);
 }
 
-function search(pattern) {
-	// TODO: Traverse pattern and create a stream of events
+function search(pattern, cb) {
+	var segments = Helpers.makeSegments(pattern, false);
+	var db = this._db;
+
+	Search.search(db, segments, cb);
 }
