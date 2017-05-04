@@ -1,9 +1,9 @@
 "use strict";
 var test = require("tape");
 
-var Helpers = require("../helpers");
-var Populate = require("../populate");
-var Search = require("../search");
+var Helpers = require("../src/helpers");
+var Populate = require("../src/populate");
+var Search = require("../src/search");
 var createDB = require("./createDB");
 
 test("Search.search should be able to find a key by its value", function(t){

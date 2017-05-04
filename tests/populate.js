@@ -1,9 +1,9 @@
 "use strict";
 var test = require("tape");
 
-var Helpers = require("../helpers");
-var Operations = require("../operations");
-var Populate = require("../populate");
+var Helpers = require("../src/helpers");
+var Operations = require("../src/operations");
+var Populate = require("../src/populate");
 var createDB = require("./createDB");
 
 test("Populate.put should store the data in the DB and populate the parents", function (t) {

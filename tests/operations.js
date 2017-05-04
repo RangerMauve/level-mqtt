@@ -1,8 +1,8 @@
 "use strict";
 var test = require("tape");
 
-var CONSTANTS = require("../constants");
-var Operations = require("../operations");
+var CONSTANTS = require("../src/constants");
+var Operations = require("../src/operations");
 var createDB = require("./createDB");
 
 test("Operations.put and Operations.get should let you save and retrieve a value", function (t) {

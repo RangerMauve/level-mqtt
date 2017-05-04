@@ -1,8 +1,8 @@
 "use strict";
 var test = require("tape");
 
-var CONSTANTS = require("../CONSTANTS");
-var Helpers = require("../helpers");
+var CONSTANTS = require("../src/CONSTANTS");
+var Helpers = require("../src/helpers");
 
 test("Helpers.hashPath should hash using fnv", function (t) {
 	t.plan(1);

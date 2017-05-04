@@ -2,7 +2,7 @@
 var test = require("tape");
 var each = require("async-each");
 
-var MQTTLevelStore = require("../").MQTTLevelStore;
+var MQTTLevelStore = require("../src").MQTTLevelStore;
 var createDB = require("./createDB");
 
 function createStore(){
