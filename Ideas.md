@@ -13,11 +13,11 @@ The goal is to make it easy to store and query trees of data using MQTT topic pa
 ## Layout of keys
 The paths `/foo/bar`, `foo/bar/`, `foo/bar`, and `/foo/bar/` are all equivalent to the directory `foo/bar`. Paths cannot contain wildcard characters (`+` and `#`)
 
-Directories are hashed to avoid storing long keys and ensuring uniformity among keys. Will probably use [FNV-1a](https://github.com/casetext/fnv-lite) for hashing. Hashes should produced fixed length strings (prefix with `0`'s if necessary) in order to improve performance of retrieving parts of keys.
+Directories get hashed to avoid storing long keys and ensuring uniformity among keys. Will probably use [FNV-1a](https://github.com/casetext/fnv-lite) for hashing. Hashes should produced fixed length strings (prefix with `0`'s if necessary) to improve performance of retrieving parts of keys.
 
 Directory names can only contain ASCII values between `LAST` and `FIRST`
 
-If a directory exists, the following key is created: `HASH` + `FIRST` + `FIRST`. The value can be anything that's non `0`. Might be a good place for a timestamp of when the directory was created or updated?
+If a directory exists, the following key gets created: `HASH` + `FIRST` + `FIRST`. The value can be anything that's non `0`. Might be a good place for a timestamp of when the directory was created or updated?
 
 Directories can hold one value, this is placed under `HASH` + `FIRST`. Notice that this will make sure that the value is placed right after the key describing that the directory exists
 
@@ -107,3 +107,7 @@ Lists all children (and sub-children) of the path that match the given pattern.
 
 ### allChildren(path) -> [child paths]
 List all children and sub-children under a given path. (the `#` wildcard)
+
+## Optimization
+
+The code currently splits all topics by their path separators into an array of segments. This means that there are many arrays being created in memory with every operation. An easy operation would be to instead keep the path a string and not separate it, and for operations which require a subset of the path, then an offset from the end can be specified so that a substring can be used only when it's needed.

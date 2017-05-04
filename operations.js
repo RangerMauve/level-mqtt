@@ -1,30 +1,35 @@
 "use strict";
-var map = require("through2-map");
+var streamToArray = require("stream-to-array");
 
 var CONSTANTS = require("./constants");
 
 module.exports = {
-	childNames: childNames,
-	existsPath: existsPath,
 	getValue: getValue,
 	putValue: putValue,
-	updateTime: updateTime,
+	updatePath: updatePath,
+	existsPath: existsPath,
+	childNames: childNames,
+	updateChild: updateChild,
 };
 
-function childNames(db, pathHash) {
+function childNames(db, pathHash, cb) {
 	var start = pathHash + CONSTANTS.LAST + CONSTANTS.FIRST;
 	var end = pathHash + CONSTANTS.LAST + CONSTANTS.LAST;
 
-	return db.createReadStream({
+	return streamToArray(db.createReadStream({
 		gt: start,
 		lt: end,
 		keys: true,
 		values: false
-	}).pipe(map(parseChildName));
+	}), function (err, keys) {
+		if(err) return cb(err);
+		cb(null, keys.map(parseChildName));
+	});
 }
 
 function parseChildName(key) {
-	return key.slice(CONSTANTS.HASH_LENGTH + 2);
+	var child = key.slice(CONSTANTS.HASH_LENGTH + 1).toString();
+	return child;
 }
 
 function existsPath(db, pathHash, cb) {
@@ -35,7 +40,7 @@ function existsPath(db, pathHash, cb) {
 			if(err.notFound)
 				cb(null, false);
 			else cb(err);
-		} else cb(null, value);
+		} else cb(null, parseInt(value, 10));
 	});
 }
 
@@ -51,8 +56,14 @@ function putValue(db, pathHash, value, cb) {
 	db.put(key, value, cb);
 }
 
-function updateTime(db, pathHash, time, cb) {
-	var key = pathHash + CONSTANTS.FIRST + CONSTANTS.FIRST;
+function updateChild(db, pathHash, child, time, cb) {
+	var key = pathHash + CONSTANTS.LAST + child;
 
 	db.put(key, time, cb);
+}
+
+function updatePath(db, pathHash, time, cb) {
+	var key = pathHash + CONSTANTS.FIRST + CONSTANTS.FIRST;
+
+	db.put(key, time + "", cb);
 }

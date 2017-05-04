@@ -1,6 +1,5 @@
 "use strict";
 var each = require("async-each");
-var toArray = require("stream-to-array");
 var par = require("par");
 
 var Operations = require("./operations");
@@ -20,7 +19,7 @@ function searchNext(db, prefix, segments, cb) {
 
 	var next = segments[0];
 	if (next === "+") {
-		return getChildren(function (err, children) {
+		return getChildren(db, prefix, function (err, children) {
 			if (err) return cb(err);
 			var processChild = par(searchChild, db, prefix, segments.slice(1));
 			each(
@@ -32,13 +31,13 @@ function searchNext(db, prefix, segments, cb) {
 	} else if (next === "#") {
 		allValues(db, prefix, cb);
 	} else {
-		search(db, prefix.concat(next), segments.slice(1), cb);
+		searchNext(db, prefix.concat(next), segments.slice(1), cb);
 	}
 }
 
 function getChildren(db, prefix, cb) {
 	var hashPath = Helpers.hashPath(prefix);
-	toArray(Operations.childNames(db, hashPath), cb);
+	Operations.childNames(db, hashPath, cb);
 }
 
 function getValue(db, prefix, cb) {
@@ -47,9 +46,13 @@ function getValue(db, prefix, cb) {
 		if (err) return cb(err);
 		if (!exists) return cb(null, []);
 		Operations.getValue(db, hashPath, function (getErr, value) {
-			if (getErr) cb(getErr);
+			if(getErr){
+				if(getErr.notFound)
+					return cb(null, []);
+				else return cb(getErr);
+			}
 			else cb(null, [{
-				path: prefix,
+				path: prefix.join("/"),
 				value: value
 			}]);
 		});
@@ -67,21 +70,25 @@ function concat(a, b) {
 
 function searchChild(db, prefix, segments, child, cb) {
 	var newPrefix = prefix.concat(child);
-	search(db, newPrefix, segments, cb);
+	searchNext(db, newPrefix, segments, cb);
 }
 
 function allValues(db, prefix, cb) {
 	return getValue(db, prefix, function(err, rootValues) {
 		if(err) return cb(err);
-		getChildren(db, prefix, cb, function (childErr, childNames) {
-			if(childErr) return cb(err);
+		getChildren(db, prefix, function (childErr, childNames) {
+			if(childErr) return cb(childErr);
 			each(childNames, par(allChildValues, db, prefix), function (childValueErr, childValues) {
-				if(childValueErr) cb(err, null);
-				var all = rootValues.concat(childValues);
+				if(childValueErr) cb(childValueErr);
+				var all = rootValues.concat(childValues).reduce(flatten, []);
 				cb(null, all);
 			});
 		});
 	});
+}
+
+function flatten(a,b) {
+	return a.concat(b);
 }
 
 function allChildValues(db, prefix, child, cb) {
