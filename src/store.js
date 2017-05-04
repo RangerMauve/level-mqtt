@@ -1,10 +1,10 @@
 "use strict";
 
-module.exports = {
-	MQTTLevelStore: MQTTLevelStore
-};
+module.exports = MQTTLevelStore;
 
 function MQTTLevelStore(db) {
+	if(!(this instanceof MQTTLevelStore))
+		return new MQTTLevelStore(db);
 	this._db = db;
 }
 

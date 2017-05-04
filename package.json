@@ -2,7 +2,7 @@
   "name": "level-mqtt",
   "version": "1.0.0",
   "description": "Store key-value pairs in LevelDB, query with MQTT",
-  "main": "./src/index.js",
+  "main": "index.js",
   "scripts": {
     "test": "node ./tests"
   },
